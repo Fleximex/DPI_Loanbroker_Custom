@@ -58,8 +58,8 @@ public class Client extends javax.swing.JFrame
     private void positionWindow()
     {
         Dimension windowSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int dx = windowSize.width / 4 - this.getContentPane().getWidth() / 2;
-        int dy = windowSize.height / 2 - this.getContentPane().getHeight();
+        int dx = (int) (windowSize.width / 4 - this.getContentPane().getWidth() / 2);
+        int dy = (int) (windowSize.height / 2 - this.getContentPane().getHeight() / 1.5);
         setLocation(dx, dy);
     }
 
@@ -122,8 +122,7 @@ public class Client extends javax.swing.JFrame
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 360, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2)
@@ -135,7 +134,10 @@ public class Client extends javax.swing.JFrame
                             .addComponent(button, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(ssnField, javax.swing.GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
                             .addComponent(amountField)
-                            .addComponent(timeField))))
+                            .addComponent(timeField)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 420, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(

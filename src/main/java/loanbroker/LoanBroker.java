@@ -18,7 +18,9 @@ import model.bank.BankInterestReply;
 import model.bank.BankInterestRequest;
 import model.loan.LoanReply;
 import model.loan.LoanRequest;
+import model.loanbroker.Aggregator;
 import model.requestreply.RequestReply;
+import net.sourceforge.jeval.Evaluator;
 
 /**
  *
@@ -27,9 +29,16 @@ import model.requestreply.RequestReply;
 public class LoanBroker extends javax.swing.JFrame
 {
     private final ClientGateway clientGateway;
-    private final BankGateway bankGateway;
+    private final BankGateway bankGatewayABN;
+    private final BankGateway bankGatewayRABO;
+    private final BankGateway bankGatewayING;
     private final ArrayList<RequestReply<LoanRequest, BankInterestReply>> rrList;
     private final DefaultListModel<String> model;
+    private final String ABN_AMRO  = "#{amount} >= 200000 && #{amount} <= 300000  && #{time} <= 20";
+    private final String RABO_BANK = "#{amount} <= 250000 && #{time} <= 15";
+    private final String ING       = "#{amount} <= 100000 && #{time} <= 10";
+    private ArrayList<Aggregator> aggregators;
+
     
     public LoanBroker(String clientToBrokerQueue, String brokerToClientQueue, String brokerToBankQueue, String bankToBrokerQueue) throws JMSException, NamingException
     {
@@ -41,16 +50,63 @@ public class LoanBroker extends javax.swing.JFrame
                 onLoanRequest(loanRequest);
             }
         };
-        bankGateway = new BankGateway(brokerToBankQueue, bankToBrokerQueue)
+        bankGatewayABN = new BankGateway(brokerToBankQueue + "ABN", bankToBrokerQueue)
         {
             @Override
-            public void onBankInterestRequestArrived(BankInterestReply bankInterestReply)
+            public void onBankInterestReplyArrived(BankInterestReply bankInterestReply)
             {
-                onBankInterestReply(bankInterestReply);
+                for (Aggregator aggregator : aggregators)
+                {
+                    if(bankInterestReply.getId() == aggregator.getId())
+                    {
+                        aggregator.addReply(bankInterestReply);
+                        if (aggregator.allAnswered())
+                        {
+                            onBankInterestReply(aggregator.getBestInterest());
+                        }
+                    }
+                }
+            }
+        };
+        bankGatewayRABO = new BankGateway(brokerToBankQueue + "RABO", bankToBrokerQueue)
+        {
+            @Override
+            public void onBankInterestReplyArrived(BankInterestReply bankInterestReply)
+            {
+                for (Aggregator aggregator : aggregators)
+                {
+                    if(bankInterestReply.getId() == aggregator.getId())
+                    {
+                        aggregator.addReply(bankInterestReply);
+                        if (aggregator.allAnswered())
+                        {
+                            onBankInterestReply(aggregator.getBestInterest());
+                        }
+                    }
+                }
+            }
+        };
+        bankGatewayING = new BankGateway(brokerToBankQueue + "ING", bankToBrokerQueue)
+        {
+            @Override
+            public void onBankInterestReplyArrived(BankInterestReply bankInterestReply)
+            {
+                for (Aggregator aggregator : aggregators)
+                {
+                    if(bankInterestReply.getId() == aggregator.getId())
+                    {
+                        aggregator.addReply(bankInterestReply);
+                        if (aggregator.allAnswered())
+                        {
+                            onBankInterestReply(aggregator.getBestInterest());
+                        }
+                    }
+                }
             }
         };
         rrList = new ArrayList<>();
-        model = new DefaultListModel<>();        
+        model = new DefaultListModel<>();  
+        aggregators = new ArrayList<>();
         initComponents();
         this.getContentPane().setBackground(new Color(180, 185, 210));
         reloadList();
@@ -61,8 +117,8 @@ public class LoanBroker extends javax.swing.JFrame
     private void positionWindow()
     {
         Dimension windowSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int dx = windowSize.width / 2 - this.getContentPane().getWidth() / 2;
-        int dy = windowSize.height / 2 - this.getContentPane().getHeight();
+        int dx = (int) (windowSize.width / 2 - this.getContentPane().getWidth() / 2);
+        int dy = (int) (windowSize.height / 2 - this.getContentPane().getHeight() / 1.5);
         setLocation(dx, dy);
     }
 
@@ -97,8 +153,10 @@ public class LoanBroker extends javax.swing.JFrame
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 420, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -123,12 +181,46 @@ public class LoanBroker extends javax.swing.JFrame
         jList1.repaint();
     }
     
-    private void onLoanRequest(LoanRequest loanRequest) {
+    private void onLoanRequest(LoanRequest loanRequest)
+    {
         try
         {
             rrList.add(new RequestReply<>(loanRequest, null));
             reloadList();
-            bankGateway.sendBankInterestRequest(new BankInterestRequest(loanRequest.getId(), loanRequest.getAmount(), loanRequest.getTime()));
+            
+            Aggregator aggregator = new Aggregator();
+            aggregator.setId(loanRequest.getId());
+            Evaluator evaluator = new Evaluator();
+            BankInterestRequest request = new BankInterestRequest(loanRequest.getId(), loanRequest.getAmount(), loanRequest.getTime());
+            // set values of variables amount and time
+            evaluator.putVariable("amount", Integer.toString(request.getAmount()));
+            evaluator.putVariable("time", Integer.toString(request.getTime()));
+            String result1 = evaluator.evaluate(ABN_AMRO); // evaluate ABN Amro rule
+            boolean abnRule = result1.equals("1.0"); // 1.0 means TRUE, otherwise it is FALSE
+            String result2 = evaluator.evaluate(RABO_BANK); // evaluate RaboBank rule
+            boolean raboRule = result2.equals("1.0"); // 1.0 means TRUE, otherwise it is FALSE
+            String result3 = evaluator.evaluate(ING); // evaluate ING rule
+            boolean ingRule = result3.equals("1.0"); // 1.0 means TRUE, otherwise it is FALSE
+            
+            if(abnRule)
+            {
+                request.setBank("ABN Amro");
+                aggregator.upCount();
+                bankGatewayABN.sendBankInterestRequest(request);
+            }
+            if(raboRule)
+            {
+                request.setBank("Rabobank");
+                aggregator.upCount();
+                bankGatewayRABO.sendBankInterestRequest(request);
+            }
+            if(ingRule)
+            {
+                request.setBank("ING Bank");
+                aggregator.upCount();
+                bankGatewayING.sendBankInterestRequest(request);
+            }        
+            this.aggregators.add(aggregator);
         } 
         catch (Exception ex)
         {

@@ -10,6 +10,7 @@ public class BankInterestRequest {
     private int id;
     private int amount; // the requested loan amount
     private int time; // the requested loan period
+    private String bank = "";
 
     public BankInterestRequest() {
         super();
@@ -37,7 +38,6 @@ public class BankInterestRequest {
         this.amount = amount;
     }
 
-
     public int getTime() {
         return time;
     }
@@ -46,6 +46,14 @@ public class BankInterestRequest {
         this.time = time;
     }
 
+    public String getBank() {
+        return bank;
+    }
+
+    public void setBank(String bank) {
+        this.bank = bank;
+    }
+    
     @Override
     public String toString() {
         return " amount=" + amount + " time=" + time;

@@ -5,6 +5,7 @@
  */
 package gateway;
 
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.jms.JMSException;
@@ -41,7 +42,7 @@ public abstract class BankGateway
                 {
                     TextMessage m = (TextMessage) msg;
                     BankInterestReply reply = serializer.replyFromString(m.getText());
-                    onBankInterestRequestArrived(reply);
+                    onBankInterestReplyArrived(reply);
                 }
                 catch (JMSException ex)
                 {
@@ -67,5 +68,5 @@ public abstract class BankGateway
         return false;
     }
     
-    public abstract void onBankInterestRequestArrived(BankInterestReply bankInterestReply);
+    public abstract void onBankInterestReplyArrived(BankInterestReply bankInterestReply);
 }

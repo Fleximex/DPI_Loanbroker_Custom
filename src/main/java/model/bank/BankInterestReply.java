@@ -7,7 +7,7 @@ import java.util.Random;
  *  to a loan request of the specific client
  * 
  */
-public class BankInterestReply {
+public class BankInterestReply implements Comparable<BankInterestReply>{
 
     private int id;
     private double interest; // the loan interest
@@ -48,5 +48,22 @@ public class BankInterestReply {
 
     public String toString() {
         return " bankID=" + this.bankId + " interest=" + this.interest;
+    }
+
+    @Override
+    public int compareTo(BankInterestReply bankInterestReply)
+    {
+        if (this.interest > bankInterestReply.interest)
+        {
+            return 1;
+        }
+        else if (this.interest == bankInterestReply.interest)
+        {
+            return 0;
+        }
+        else
+        {
+            return -1;
+        }
     }
 }

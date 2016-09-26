@@ -25,6 +25,8 @@ public class main
         String bankToBrokerQueue = "BankToBrokerQueue";        
         Client client = new Client(clientToBrokerQueue, brokerToClientQueue);
         LoanBroker broker = new LoanBroker(clientToBrokerQueue, brokerToClientQueue, brokerToBankQueue, bankToBrokerQueue);
-        Bank abn = new Bank(bankToBrokerQueue, brokerToBankQueue);
+        Bank abn = new Bank(bankToBrokerQueue, brokerToBankQueue, "ABN");
+        Bank rabo = new Bank(bankToBrokerQueue, brokerToBankQueue, "RABO");
+        Bank ing = new Bank(bankToBrokerQueue, brokerToBankQueue, "ING");
     }
 }

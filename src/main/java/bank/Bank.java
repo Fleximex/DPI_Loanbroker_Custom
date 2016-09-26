@@ -27,13 +27,15 @@ import model.requestreply.RequestReply;
  */
 public class Bank extends javax.swing.JFrame
 {    
+    private final String name;
     private final LoanBrokerGateway loanBrokerGateway;
     private ArrayList<RequestReply<BankInterestRequest, BankInterestReply>> rrList;
     private DefaultListModel<String> model;
 
-    public Bank(String bankToBrokerQueue, String brokerToBankQueue) throws JMSException, NamingException
+    public Bank(String bankToBrokerQueue, String brokerToBankQueue, String name) throws JMSException, NamingException
     {
-        loanBrokerGateway = new LoanBrokerGateway(bankToBrokerQueue, brokerToBankQueue)
+        this.name = name;
+        loanBrokerGateway = new LoanBrokerGateway(bankToBrokerQueue, brokerToBankQueue + name)
         {
             @Override
             public void onBankInterestRequestArrived(BankInterestRequest bankInterestRequest) {
@@ -58,7 +60,7 @@ public class Bank extends javax.swing.JFrame
     {
         Dimension windowSize = Toolkit.getDefaultToolkit().getScreenSize();
         int dx = (int) (windowSize.width / 1.25 - this.getContentPane().getWidth() / 2);
-        int dy = windowSize.height / 2 - this.getContentPane().getHeight();
+        int dy = (int) (windowSize.height / 2 - this.getContentPane().getHeight() / 1.5);
         setLocation(dx, dy);
     }
 
@@ -137,7 +139,7 @@ public class Bank extends javax.swing.JFrame
     private void buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonActionPerformed
         if(!jList1.isSelectionEmpty())
         {
-            BankInterestReply bankInterestReply = new BankInterestReply(rrList.get(jList1.getSelectedIndex()).getRequest().getId(), Integer.parseInt(interestfield.getText()), "Abn Bank");
+            BankInterestReply bankInterestReply = new BankInterestReply(rrList.get(jList1.getSelectedIndex()).getRequest().getId(), Integer.parseInt(interestfield.getText()), this.name);
             sendReply(bankInterestReply);
         }        
     }//GEN-LAST:event_buttonActionPerformed
