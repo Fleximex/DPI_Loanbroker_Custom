@@ -35,6 +35,7 @@ public class Bank extends javax.swing.JFrame
     public Bank(String bankToBrokerQueue, String brokerToBankQueue, String name) throws JMSException, NamingException
     {
         this.name = name;
+        this.jLabel1.setText(this.jLabel1.getText() + name);
         loanBrokerGateway = new LoanBrokerGateway(bankToBrokerQueue, brokerToBankQueue + name)
         {
             @Override
